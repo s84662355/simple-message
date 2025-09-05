@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net"
 )
 
 var (
@@ -57,7 +56,7 @@ func (d *Decoder) Unmarshal(conn io.Reader) (*Message, error) {
 }
 
 func (d *Decoder) Marshal(conn io.Writer, MsgID uint32, data []byte) error {
-	n := len(data)
+	n := uint32(len(data))
 	if n > d.maxDataLen {
 		return fmt.Errorf("%w 不得大于%d", ErrDataLength, d.maxDataLen)
 	}

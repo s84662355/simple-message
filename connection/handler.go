@@ -18,9 +18,9 @@ type HandlerManager struct {
 	readWriteCloser io.ReadWriteCloser
 	queue           nqueue.Queue[*protocol.Message]
 	conn            *Connection
-	msgChan         chan *protocol.Message
+	msgChan         <-chan *MessageBody
 	handler         map[uint32]Handler
-	decoder         protocol.Decoder
+	decoder         *protocol.Decoder
 	ctx             context.Context
 	cancel          context.CancelFunc
 	wg              sync.WaitGroup
@@ -32,6 +32,7 @@ func NewHandlerManager(
 	readWriteCloser io.ReadWriteCloser,
 	handler map[uint32]Handler,
 	maxDataLen uint32,
+	connectedBegin func(conn *Connection),
 ) *HandlerManager {
 	h := &HandlerManager{
 		readWriteCloser: readWriteCloser,
@@ -42,7 +43,18 @@ func NewHandlerManager(
 	h.conn, h.msgChan = NewConnection()
 	h.ctx, h.cancel = context.WithCancel(context.Background())
 
-	h.wg.Add(3)
+	h.wg.Add(5)
+	go func() {
+		defer h.wg.Done()
+		connectedBegin(h.conn)
+	}()
+
+	go func() {
+		defer h.wg.Done()
+		defer h.stop()
+		h.read()
+	}()
+
 	go func() {
 		defer h.wg.Done()
 		defer h.stop()
@@ -114,7 +126,7 @@ func (h *HandlerManager) send() {
 			m.AckMessage(func() error {
 				message := m.GetMessage()
 				err = h.decoder.Marshal(h.readWriteCloser, message.MsgID, message.Data)
-				return
+				return err
 			})
 
 			if err != nil {
@@ -133,13 +145,13 @@ func (h *HandlerManager) queueConsumer() {
 		if t, ok, isClose := h.queue.DequeueWait(); isClose {
 			return
 		} else if ok {
-			if h, ok := h.handler[t.MsgID]; ok {
+			if handler, ok := h.handler[t.MsgID]; ok {
 				r := &Request{
 					conn:  h.conn,
 					data:  t.Data,
 					msgID: t.MsgID,
 				}
-				h.Handle(r)
+				handler.Handle(r)
 			}
 		}
 	}

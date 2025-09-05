@@ -2,7 +2,7 @@ package connection
 
 type IRequest interface {
 	GetConnection() *Connection
-	GetData() *[]byte
+	GetData() []byte
 	GetMsgID() uint32
 }
 
@@ -16,7 +16,7 @@ func (m *Request) GetConnection() *Connection {
 	return m.conn
 }
 
-func (m *Request) GetData() *[]byte {
+func (m *Request) GetData() []byte {
 	return m.data
 }
 

@@ -14,15 +14,15 @@ var (
 )
 
 type Connection struct {
-	msgChan  chan *protocol.Message
+	msgChan  chan *MessageBody
 	ctx      context.Context
 	cancel   context.CancelFunc
 	property sync.Map
 }
 
-func NewConnection() (*Connection, <-chan *protocol.Message) {
+func NewConnection() (*Connection, <-chan *MessageBody) {
 	C := &Connection{
-		msgChan: make(chan *protocol.Message),
+		msgChan: make(chan *MessageBody),
 	}
 	C.ctx, C.cancel = context.WithCancel(context.Background())
 	return C, C.msgChan
@@ -59,7 +59,7 @@ func (C *Connection) sendMsg(ctx context.Context, MsgID uint32, Data []byte) err
 	case <-C.ctx.Done():
 		return ErrIsClose
 	case <-ctx.Done():
-		return c.Err()
+		return ctx.Err()
 	case C.msgChan <- m:
 		select {
 		case <-C.ctx.Done():
@@ -73,7 +73,7 @@ func (C *Connection) sendMsg(ctx context.Context, MsgID uint32, Data []byte) err
 				<-m.ackChan
 				return m.err
 			}
-			return c.Err()
+			return ctx.Err()
 		case <-m.ackChan:
 			return m.err
 		}
