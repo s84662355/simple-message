@@ -50,7 +50,9 @@ func (m *Server) handlerTcpConn(ctx context.Context, conn net.Conn) {
 		m.maxDataLen,
 		m.connectedBegin,
 	)
-	defer handlerManager.Stop()
+	defer func() {
+		<-handlerManager.Stop()
+	}()
 
 	select {
 	case <-ctx.Done():

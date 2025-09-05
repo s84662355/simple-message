@@ -26,6 +26,7 @@ type HandlerManager struct {
 	wg              sync.WaitGroup
 	err             error
 	errOnce         sync.Once
+	done            chan struct{}
 }
 
 func NewHandlerManager(
@@ -39,31 +40,37 @@ func NewHandlerManager(
 		handler:         maps.Clone(handler),
 		queue:           nqueue.NewNQueue[*protocol.Message](),
 		decoder:         protocol.NewDecoder(maxDataLen),
+		done:            make(chan struct{}),
 	}
 	h.conn, h.msgChan = NewConnection()
 	h.ctx, h.cancel = context.WithCancel(context.Background())
 
-	h.wg.Add(4)
 	go func() {
-		defer h.wg.Done()
-		connectedBegin(h.conn)
-	}()
+		defer close(h.done)
+		wg := &sync.WaitGroup{}
+		defer wg.Wait()
+		wg.Add(4)
+		go func() {
+			defer wg.Done()
+			connectedBegin(h.conn)
+		}()
 
-	go func() {
-		defer h.wg.Done()
-		defer h.stop()
-		h.read()
-	}()
+		go func() {
+			defer wg.Done()
+			defer h.stop()
+			h.read()
+		}()
 
-	go func() {
-		defer h.wg.Done()
-		defer h.stop()
-		h.send()
-	}()
-	go func() {
-		defer h.wg.Done()
-		defer h.stop()
-		h.queueConsumer()
+		go func() {
+			defer wg.Done()
+			defer h.stop()
+			h.send()
+		}()
+		go func() {
+			defer wg.Done()
+			defer h.stop()
+			h.queueConsumer()
+		}()
 	}()
 
 	return h
@@ -73,9 +80,9 @@ func (h *HandlerManager) GetConnection() *Connection {
 	return h.conn
 }
 
-func (h *HandlerManager) Stop() {
+func (h *HandlerManager) Stop() <-chan struct{} {
 	h.stop()
-	h.wg.Wait()
+	return h.done
 }
 
 func (h *HandlerManager) Ctx() context.Context {

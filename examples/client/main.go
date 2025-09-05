@@ -38,7 +38,9 @@ func main() {
 			fmt.Println(conn)
 		},
 	)
-	defer c.Stop()
+	defer func() {
+		<-c.Stop()
+	}()
 	// 2. 设置信号监听通道
 	signalChan := make(chan os.Signal, 1) // 缓冲大小为1的信号通道
 

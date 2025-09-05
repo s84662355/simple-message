@@ -46,10 +46,9 @@ func NewClient(
 	return c
 }
 
-func (c *Client) Stop() {
+func (c *Client) Stop() <-chan struct{} {
 	c.cancel()
-	for range c.done {
-	}
+	return c.done
 }
 
 func (c *Client) start() {
@@ -80,7 +79,9 @@ func (c *Client) dial() {
 			c.maxDataLen,
 			c.connectedBegin,
 		)
-		defer handlerManager.Stop()
+		defer func() {
+			<-handlerManager.Stop()
+		}()
 
 		select {
 		case <-c.ctx.Done():
