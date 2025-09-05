@@ -43,7 +43,7 @@ func NewHandlerManager(
 	h.conn, h.msgChan = NewConnection()
 	h.ctx, h.cancel = context.WithCancel(context.Background())
 
-	h.wg.Add(5)
+	h.wg.Add(4)
 	go func() {
 		defer h.wg.Done()
 		connectedBegin(h.conn)
@@ -55,11 +55,6 @@ func NewHandlerManager(
 		h.read()
 	}()
 
-	go func() {
-		defer h.wg.Done()
-		defer h.stop()
-		h.read()
-	}()
 	go func() {
 		defer h.wg.Done()
 		defer h.stop()
@@ -119,10 +114,10 @@ func (h *HandlerManager) send() {
 	var err error
 	for {
 		select {
-		case m, ok := <-h.msgChan:
-			if !ok {
-				return
-			}
+		case <-h.conn.Ctx().Done():
+			return
+		case m := <-h.msgChan:
+
 			m.AckMessage(func() error {
 				message := m.GetMessage()
 				err = h.decoder.Marshal(h.readWriteCloser, message.MsgID, message.Data)

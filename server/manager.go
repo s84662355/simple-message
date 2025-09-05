@@ -21,12 +21,15 @@ type Server struct {
 	connectedBegin func(conn *connection.Connection)
 	handler        map[uint32]connection.Handler
 	maxDataLen     uint32
+	maxConnCount   int32
+	connCount      atomic.Int32
 }
 
 func NewServer(
 	tcpListener net.Listener,
 	handler map[uint32]connection.Handler,
 	maxDataLen uint32,
+	maxConnCount int32,
 	connErr func(conn *connection.Connection, err error),
 	connectedBegin func(conn *connection.Connection),
 ) *Server {
@@ -36,6 +39,7 @@ func NewServer(
 		connectedBegin: connectedBegin,
 		handler:        handler,
 		maxDataLen:     maxDataLen,
+		maxConnCount:   maxConnCount,
 	}
 	m.ctx, m.cancel = context.WithCancel(context.Background())
 	return m

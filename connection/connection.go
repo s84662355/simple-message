@@ -39,6 +39,10 @@ func (C *Connection) GetProperty(k string) (interface{}, error) {
 	return nil, ErrKeyNotFound
 }
 
+func (C *Connection) RemoveProperty(key string) {
+	C.property.Delete(key)
+}
+
 func (C *Connection) SendMsgContext(ctx context.Context, MsgID uint32, Data []byte) error {
 	return C.sendMsg(ctx, MsgID, Data)
 }

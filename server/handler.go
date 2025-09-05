@@ -21,10 +21,19 @@ func (m *Server) tcpListenerAccept(ctx context.Context, tcpListener net.Listener
 		if err != nil {
 			continue
 		}
+
+		if m.connCount.Add(1) > m.maxConnCount {
+			m.connCount.Add(-1)
+			conn.Close()
+			continue
+		}
+
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			defer conn.Close()
+			defer m.connCount.Add(-1)
+			conn.(*net.TCPConn).SetKeepAlive(true)
 			m.handlerTcpConn(ctx, conn)
 		}()
 
