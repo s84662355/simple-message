@@ -71,7 +71,9 @@ func (c *Client) dial() {
 		return
 	} else {
 		defer conn.Close()
-		conn.(*net.TCPConn).SetKeepAlive(true)
+		if c, ok := conn.(*net.TCPConn); ok {
+			c.SetKeepAlive(true)
+		}
 		handlerManager := connection.NewHandlerManager(
 			conn,
 			c.handler,

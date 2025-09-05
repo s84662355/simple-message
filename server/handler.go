@@ -33,7 +33,10 @@ func (m *Server) tcpListenerAccept(ctx context.Context, tcpListener net.Listener
 			defer wg.Done()
 			defer conn.Close()
 			defer m.connCount.Add(-1)
-			conn.(*net.TCPConn).SetKeepAlive(true)
+			if c, ok := conn.(*net.TCPConn); ok {
+				c.SetKeepAlive(true)
+			}
+
 			m.handlerTcpConn(ctx, conn)
 		}()
 
