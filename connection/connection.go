@@ -65,22 +65,8 @@ func (C *Connection) sendMsg(ctx context.Context, MsgID uint32, Data []byte) err
 	case <-ctx.Done():
 		return ctx.Err()
 	case C.msgChan <- m:
-		select {
-		case <-C.ctx.Done():
-			if !m.status.CompareAndSwap(false, true) {
-				<-m.ackChan
-				return m.err
-			}
-			return ErrIsClose
-		case <-ctx.Done():
-			if !m.status.CompareAndSwap(false, true) {
-				<-m.ackChan
-				return m.err
-			}
-			return ctx.Err()
-		case <-m.ackChan:
-			return m.err
-		}
+		<-m.ackChan
+		return m.err
 	}
 }
 
