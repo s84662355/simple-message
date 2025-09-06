@@ -257,7 +257,9 @@ func main() {
             conn.SendMsg(1, []byte("客户端已连接"))
         },
     )
-    defer cli.Stop()
+    defer func() {
+        <-cli.Stop()
+    }()
 
     // 监听退出信号
     signalChan := make(chan os.Signal, 1)

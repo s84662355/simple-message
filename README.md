@@ -1,125 +1,117 @@
-# simple-tcp-message 代码库说明
+# simple-tcp-message 文档
 
 ## 项目概述
 
 `simple-tcp-message` 是一个基于 Go 语言实现的轻量级 TCP 消息通信库，提供了客户端和服务器端的基础框架，支持自定义消息处理、连接管理、消息编解码等功能。该库通过模块化设计，简化了 TCP 通信中的消息处理流程，适用于构建简单的基于 TCP 的通信应用。
 
+### 核心功能特点
 
-## 核心包结构
+1. **简单易用**：封装了 TCP 通信的底层细节，提供简洁的 API 接口
+2. **协议灵活**：通过 `protocol` 包定义消息格式，支持自定义消息 ID 和数据
+3. **并发安全**：使用读写锁、原子操作、条件变量等保证高并发场景下的稳定性
+4. **连接管理**：支持连接属性存储、连接生命周期管理、最大连接数限制
+5. **自动重连**：客户端断开连接后会自动尝试重连
+6. **消息缓冲**：通过 `nqueue` 包的队列实现消息缓冲，避免消息处理阻塞
 
-### 1. `protocol` 包
-负责消息的协议定义与编解码，定义了消息格式和数据传输规则。
+## 安装方法
 
-- **`Message` 结构体**：表示一个完整的消息，包含消息 ID（`MsgID`）和消息数据（`Data`）。
-  ```go
-  type Message struct {
-      MsgID uint32  // 消息唯一标识
-      Data  []byte  // 消息内容
-  }
-  ```
+使用 `go get` 命令安装：
 
-- **`Decoder` 结构体**：处理消息的序列化（`Marshal`）和反序列化（`Unmarshal`），基于固定协议格式：
-  - 协议头包含 4 字节 `MsgID` + 4 字节数据长度（`DataSize`）
-  - 支持最大数据长度限制，避免超大消息导致的问题
-  - 核心方法：
-    - `Unmarshal(conn io.Reader) (*Message, error)`：从连接读取并解析消息
-    - `Marshal(conn io.Writer, MsgID uint32, data []byte) error`：将消息编码并写入连接
+```bash
+go get github.com/s84662355/simple-tcp-message
+```
 
-
-### 2. `connection` 包
-封装 TCP 连接的核心逻辑，包括连接管理、消息收发、消息处理等。
-
-- **`Connection` 结构体**：管理单个 TCP 连接，提供：
-  - 消息发送（`SendMsg`/`SendMsgContext`）：支持带上下文的消息发送，支持超时控制
-  - 连接属性存储（`SetProperty`/`GetProperty`）：用于存储连接相关的附加信息
-  - 连接关闭（`Close`）：通过 context 管理连接生命周期
-
-- **`Handler` 接口**：定义消息处理规范，需实现 `Handle(request IRequest)` 方法，用于处理指定 `MsgID` 的消息。
-
-- **`HandlerManager` 结构体**：协调连接的读写和消息处理，内部包含：
-  - 读协程：从 TCP 连接读取数据并解析为 `Message`，存入队列
-  - 写协程：从消息通道读取待发送消息，编码后写入 TCP 连接
-  - 队列消费协程：从队列中获取消息，调用对应 `Handler` 处理
-
-
-### 3. `client` 包
-实现 TCP 客户端功能，负责与服务器建立连接、重连及连接管理。
-
-- **`Client` 结构体**：
-  - 通过 `NewClient` 创建客户端，需指定服务器地址、消息处理器、最大数据长度等参数
-  - 自动重连机制：连接断开后会尝试重新连接
-  - 生命周期管理：`Start` 启动客户端，`Stop` 停止客户端并释放资源
-
-
-### 4. `server` 包
-实现 TCP 服务器功能，负责监听端口、接受客户端连接及连接管理。
-
-- **`Server` 结构体**：
-  - 通过 `NewServer` 创建服务器，需指定监听地址、消息处理器、最大连接数等参数
-  - 支持多协程接受连接（`Start(acceptAmount int)` 可指定 accept 协程数量）
-  - 连接限制：通过 `maxConnCount` 控制最大并发连接数
-  - 生命周期管理：`Stop` 停止服务并关闭所有连接
-
-
-### 5. `nqueue` 包
-提供一个并发安全的泛型队列，用于缓冲消息，支持阻塞/非阻塞读写，提升消息处理的并发性能。
-
-- **`NQueue[T]` 结构体**：
-  - 核心方法：`Enqueue`（入队）、`Dequeue`（非阻塞出队）、`DequeueWait`（阻塞出队）
-  - 支持通过 `DequeueFunc` 持续消费队列元素
-  - 线程安全：使用读写锁和条件变量保证并发安全
-
-
-## 示例用法
+## 快速开始
 
 ### 服务器端示例
+
 ```go
-// 定义消息处理器
+package main
+
+import (
+    "fmt"
+    "net"
+    "os"
+    "os/signal"
+    "syscall"
+
+    "github.com/s84662355/simple-tcp-message/connection"
+    "github.com/s84662355/simple-tcp-message/server"
+)
+
+// 定义消息处理器（处理 MsgID=1 的消息）
 type Handler1 struct{}
+
 func (h *Handler1) Handle(request connection.IRequest) {
-    // 处理 MsgID=1 的消息
-    fmt.Println("Received message:", request.GetMsgID(), string(request.GetData()))
+    fmt.Printf("收到消息 - ID: %d, 内容: %s
+", request.GetMsgID(), string(request.GetData()))
+    // 可以通过 request.GetConnection() 获取当前连接，进行回复等操作
 }
 
 func main() {
-    // 创建监听器
-    l, _ := net.Listen("tcp", ":2000")
-    // 注册消息处理器（MsgID=1 对应 Handler1）
-    handler := map[uint32]connection.Handler{1: &Handler1{}}
-    // 创建服务器
-    s := server.NewServer(
-        l,
-        handler,
-        1024*1024,  // 最大数据长度
-        1024,       // 最大连接数
+    // 创建 TCP 监听器
+    listener, err := net.Listen("tcp", ":2000")
+    if err != nil {
+        fmt.Printf("监听失败: %v
+", err)
+        return
+    }
+
+    // 注册消息处理器（MsgID 与 Handler 映射）
+    handlers := map[uint32]connection.Handler{
+        1: &Handler1{}, // 处理 MsgID=1 的消息
+    }
+
+    // 创建服务器实例
+    srv := server.NewServer(
+        listener,
+        handlers,
+        1024*1024, // 最大数据长度（1MB）
+        1024,      // 最大连接数
+        // 连接错误回调
         func(conn *connection.Connection, err error) {
-            // 连接错误回调
-            fmt.Println("Connection error:", err)
+            fmt.Printf("连接错误: %v, 连接: %v
+", err, conn)
         },
+        // 连接建立回调
         func(conn *connection.Connection) {
-            // 连接建立回调
-            fmt.Println("New connection:", conn)
-            // 向客户端发送欢迎消息
-            conn.SendMsg(1, []byte("Welcome!"))
+            fmt.Println("新连接建立")
+            // 向客户端发送欢迎消息（MsgID=1）
+            conn.SendMsg(1, []byte("欢迎连接到服务器！"))
         },
     )
-    // 启动服务器（16 个 accept 协程）
-    s.Start(16)
-    defer s.Stop()
 
-    // 等待退出信号
+    // 启动服务器（16 个 accept 协程）
+    srv.Start(16)
+    defer srv.Stop()
+
+    // 监听退出信号（Ctrl+C 等）
     signalChan := make(chan os.Signal, 1)
-    signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
-    <-signalChan
+    signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM, os.Kill)
+    <-signalChan // 等待退出信号
+    fmt.Println("服务器退出")
 }
 ```
 
 ### 客户端示例
+
 ```go
-// 定义消息处理器
+package main
+
+import (
+    "fmt"
+    "os"
+    "os/signal"
+    "syscall"
+
+    "github.com/s84662355/simple-tcp-message/client"
+    "github.com/s84662355/simple-tcp-message/connection"
+)
+
+// 定义消息处理器（处理服务器发送的 MsgID=1 的消息）
 type Handler1 struct{}
+
 func (h *Handler1) Handle(request connection.IRequest) {
-    // 处理服务器发送的 MsgID=1 的消息
     fmt.Println("Received from server:", request.GetMsgID(), string(request.GetData()))
 }
 
@@ -146,7 +138,9 @@ func main() {
             fmt.Println("Connected to server")
         },
     )
-    defer c.Stop()
+    defer func() {
+        <-c.Stop()
+    }()
 
     // 等待退出信号
     signalChan := make(chan os.Signal, 1)
@@ -155,16 +149,75 @@ func main() {
 }
 ```
 
+## 核心模块
 
-## 核心功能特点
+### 1. protocol 包（协议处理）
 
-1. **简单易用**：封装了 TCP 通信的底层细节，提供简洁的 API 接口
-2. **协议灵活**：通过 `protocol` 包定义消息格式，支持自定义消息 ID 和数据
-3. **并发安全**：使用读写锁、原子操作、条件变量等保证高并发场景下的稳定性
-4. **连接管理**：支持连接属性存储、连接生命周期管理、最大连接数限制
-5. **自动重连**：客户端断开连接后会自动尝试重连
-6. **消息缓冲**：通过 `nqueue` 包的队列实现消息缓冲，避免消息处理阻塞
+实现消息的编解码功能，定义了消息格式和协议规范。
 
+#### 核心结构
+- `Message`：消息结构体，包含 MsgID 和 Data 字段
+- `Decoder`：消息编解码器
+
+#### 主要方法
+- `NewDecoder(maxDataLen uint32) *Decoder`：创建解码器实例
+- `Unmarshal(conn io.Reader) (*Message, error)`：从连接读取并解析消息
+- `Marshal(conn io.Writer, MsgID uint32, data []byte) error`：将消息编码并写入连接
+
+### 2. connection 包（连接管理）
+
+处理单个 TCP 连接的消息收发和生命周期管理。
+
+#### 核心结构
+- `Connection`：连接实例，管理连接属性和消息发送
+- `Handler`：消息处理接口，需实现 Handle 方法
+- `Request`：消息请求，包含连接、消息 ID 和数据
+
+#### 主要方法
+- `NewConnection() (*Connection, <-chan *MessageBody)`：创建连接实例
+- `SetProperty(k string, v interface{})` / `GetProperty(k string) (interface{}, error)`：设置/获取连接属性
+- `SendMsg(MsgID uint32, Data []byte) error`：发送消息
+
+#### 消息处理流程
+1. 从 TCP 连接读取数据并解析为 `Message`
+2. 将消息存入缓冲队列（`nqueue`）
+3. 消费队列消息，调用对应 `Handler` 处理
+
+### 3. server 包（服务器端）
+
+实现 TCP 服务器功能，负责监听端口、接受连接并管理。
+
+#### 核心结构
+- `Server`：服务器实例
+
+#### 主要方法
+- `NewServer(...) *Server`：创建服务器实例
+- `Start(acceptAmount int)`：启动服务器（指定 accept 协程数量）
+- `Stop()`：停止服务器
+
+### 4. client 包（客户端）
+
+实现 TCP 客户端功能，负责与服务器建立连接及重连。
+
+#### 核心结构
+- `Client`：客户端实例
+
+#### 主要方法
+- `NewClient(...) *Client`：创建客户端实例
+- `Stop() <-chan struct{}`：停止客户端
+
+### 5. nqueue 包（消息队列）
+
+提供并发安全的消息队列，用于缓冲消息，避免处理阻塞。
+
+#### 核心结构
+- `NQueue[T]`：泛型队列实现
+
+#### 主要方法
+- `Enqueue(v T) error`：入队操作
+- `Dequeue() (t T, ok bool, isClose bool)`：非阻塞出队
+- `DequeueWait() (t T, ok bool, isClose bool)`：阻塞出队
+- `Close()`：关闭队列
 
 ## 总结
 
