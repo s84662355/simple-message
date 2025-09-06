@@ -6,7 +6,7 @@ import (
 	"maps"
 	"sync"
 
-	"github.com/s84662355/simple-tcp-message/nqueue"
+	"github.com/s84662355/nqueue"
 	"github.com/s84662355/simple-tcp-message/protocol"
 )
 
