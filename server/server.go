@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"net"
 	"sync"
 	"sync/atomic"
 
@@ -10,31 +9,31 @@ import (
 )
 
 type Server struct {
-	tcpListener    net.Listener
+	listener       Listener
 	isRun          atomic.Bool
 	ctx            context.Context
 	cancel         context.CancelFunc
-	wg             sync.WaitGroup
 	startOnce      sync.Once
 	statusMu       sync.Mutex
-	connErr        func(conn *connection.Connection, err error)
-	connectedBegin func(conn *connection.Connection)
+	connErr        func(ctx context.Context, conn *connection.Connection, err error)
+	connectedBegin func(ctx context.Context, conn *connection.Connection)
 	handler        map[uint32]connection.Handler
 	maxDataLen     uint32
 	maxConnCount   int32
 	connCount      atomic.Int32
+	done           chan struct{}
 }
 
 func NewServer(
-	tcpListener net.Listener,
+	listener Listener,
 	handler map[uint32]connection.Handler,
 	maxDataLen uint32,
 	maxConnCount int32,
-	connErr func(conn *connection.Connection, err error),
-	connectedBegin func(conn *connection.Connection),
+	connErr func(ctx context.Context, conn *connection.Connection, err error),
+	connectedBegin func(ctx context.Context, conn *connection.Connection),
 ) *Server {
 	m := &Server{
-		tcpListener:    tcpListener,
+		listener:       listener,
 		connErr:        connErr,
 		connectedBegin: connectedBegin,
 		handler:        handler,
@@ -42,36 +41,43 @@ func NewServer(
 		maxConnCount:   maxConnCount,
 	}
 	m.ctx, m.cancel = context.WithCancel(context.Background())
+	m.done = make(chan struct{})
 	return m
 }
 
 // Start 启动代理服务的各个组件
-func (m *Server) Start(acceptAmount int) {
+func (m *Server) Start(acceptAmount int) <-chan struct{} {
 	m.startOnce.Do(func() {
 		m.statusMu.Lock()
 		defer m.statusMu.Unlock()
 		m.isRun.Store(true)
-		m.wg.Add(acceptAmount)
-		for i := 0; i < acceptAmount; i++ {
-			go func() {
-				defer m.wg.Done()
-				m.tcpAccept(m.ctx)
-			}()
-		}
+		go func() {
+			defer close(m.done)
+			wg := &sync.WaitGroup{}
+			defer wg.Wait()
+			wg.Add(acceptAmount)
+			for i := 0; i < acceptAmount; i++ {
+				go func() {
+					defer wg.Done()
+					m.accept(m.ctx)
+				}()
+			}
+		}()
 	})
+	return m.done
 }
 
 // Stop 停止所有服务组件
-func (m *Server) Stop() {
+func (m *Server) Stop() <-chan struct{} {
 	m.statusMu.Lock()
 	if !m.isRun.Load() {
 		m.statusMu.Unlock()
-		return
+		return nil
 	}
 	m.isRun.Store(false)
 	m.statusMu.Unlock()
 
-	m.tcpListener.Close()
+	m.listener.Close()
 	m.cancel()
-	m.wg.Wait()
+	return m.done
 }

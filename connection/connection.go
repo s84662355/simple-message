@@ -2,15 +2,9 @@ package connection
 
 import (
 	"context"
-	"errors"
 	"sync"
 
 	"github.com/s84662355/simple-tcp-message/protocol"
-)
-
-var (
-	ErrIsClose     = errors.New("已关闭")
-	ErrKeyNotFound = errors.New("属性不存在")
 )
 
 type Connection struct {
@@ -52,13 +46,10 @@ func (C *Connection) SendMsg(MsgID uint32, Data []byte) error {
 }
 
 func (C *Connection) sendMsg(ctx context.Context, MsgID uint32, Data []byte) error {
-	m := &MessageBody{
-		message: &protocol.Message{
-			MsgID: MsgID,
-			Data:  Data,
-		},
-		ackChan: make(chan struct{}),
-	}
+	m := NewMessageBody(&protocol.Message{
+		MsgID: MsgID,
+		Data:  Data,
+	})
 	select {
 	case <-C.ctx.Done():
 		return ErrIsClose

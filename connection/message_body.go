@@ -15,6 +15,13 @@ type MessageBody struct {
 	status  atomic.Bool
 }
 
+func NewMessageBody(message *protocol.Message) *MessageBody {
+	return &MessageBody{
+		message: message,
+		ackChan: make(chan struct{}),
+	}
+}
+
 func (m *MessageBody) GetMessage() *protocol.Message {
 	return m.message
 }

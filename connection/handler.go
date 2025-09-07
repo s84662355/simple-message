@@ -2,7 +2,6 @@ package connection
 
 import (
 	"context"
-	"io"
 	"maps"
 	"sync"
 
@@ -15,7 +14,7 @@ type Handler interface {
 }
 
 type HandlerManager struct {
-	readWriteCloser io.ReadWriteCloser
+	readWriteCloser Conn
 	queue           nqueue.Queue[*protocol.Message]
 	conn            *Connection
 	msgChan         <-chan *MessageBody
@@ -30,10 +29,10 @@ type HandlerManager struct {
 }
 
 func NewHandlerManager(
-	readWriteCloser io.ReadWriteCloser,
+	readWriteCloser Conn,
 	handler map[uint32]Handler,
 	maxDataLen uint32,
-	connectedBegin func(conn *Connection),
+	connectedBegin func(ctx context.Context, conn *Connection),
 ) *HandlerManager {
 	h := &HandlerManager{
 		readWriteCloser: readWriteCloser,
@@ -47,12 +46,13 @@ func NewHandlerManager(
 
 	go func() {
 		defer close(h.done)
+		defer h.merr(ErrIsClose)
 		wg := &sync.WaitGroup{}
 		defer wg.Wait()
 		wg.Add(4)
 		go func() {
 			defer wg.Done()
-			connectedBegin(h.conn)
+			connectedBegin(h.ctx, h.conn)
 		}()
 
 		go func() {
@@ -90,6 +90,7 @@ func (h *HandlerManager) Ctx() context.Context {
 }
 
 func (h *HandlerManager) Err() error {
+	<-h.done
 	return h.err
 }
 

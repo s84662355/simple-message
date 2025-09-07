@@ -3,30 +3,31 @@ package client
 import (
 	"context"
 	"maps"
-	"net"
 
 	"github.com/s84662355/simple-tcp-message/connection"
 )
 
+type DialContext func(context.Context) (connection.Conn, error)
+
 type Client struct {
-	address        string
+	dialContext    DialContext
 	handler        map[uint32]connection.Handler
 	ctx            context.Context
 	cancel         context.CancelFunc
 	maxDataLen     uint32
-	dialErr        func(err error) string
-	connErr        func(conn *connection.Connection, err error) string
-	connectedBegin func(conn *connection.Connection)
+	dialErr        func(ctx context.Context, err error) DialContext
+	connErr        func(ctx context.Context, conn *connection.Connection, err error) DialContext
+	connectedBegin func(ctx context.Context, conn *connection.Connection)
 	done           chan struct{}
 }
 
 func NewClient(
-	address string,
+	dialContext DialContext,
 	handler map[uint32]connection.Handler,
 	maxDataLen uint32,
-	dialErr func(err error) string,
-	connErr func(conn *connection.Connection, err error) string,
-	connectedBegin func(conn *connection.Connection),
+	dialErr func(ctx context.Context, err error) DialContext,
+	connErr func(ctx context.Context, conn *connection.Connection, err error) DialContext,
+	connectedBegin func(ctx context.Context, conn *connection.Connection),
 ) *Client {
 	c := &Client{
 		handler:        maps.Clone(handler),
@@ -37,10 +38,11 @@ func NewClient(
 	c.ctx, c.cancel = context.WithCancel(context.Background())
 
 	c.done = make(chan struct{})
-	c.address = address
+	c.dialContext = dialContext
 	go func() {
 		defer close(c.done)
 		c.start()
+		c.cancel()
 	}()
 
 	return c
@@ -52,27 +54,23 @@ func (c *Client) Stop() <-chan struct{} {
 }
 
 func (c *Client) start() {
-	for {
-		c.dial()
+	for c.dialContext != nil {
 		select {
 		case <-c.ctx.Done():
 			return
 		default:
 
 		}
+		c.dial()
 	}
 }
 
 func (c *Client) dial() {
-	var d net.Dialer
-	if conn, err := d.DialContext(c.ctx, "tcp", c.address); err != nil {
-		c.address = c.dialErr(err)
+	if conn, err := c.dialContext(c.ctx); err != nil {
+		c.dialContext = c.dialErr(c.ctx, err)
 		return
 	} else {
 		defer conn.Close()
-		if c, ok := conn.(*net.TCPConn); ok {
-			c.SetKeepAlive(true)
-		}
 		handlerManager := connection.NewHandlerManager(
 			conn,
 			c.handler,
@@ -81,13 +79,13 @@ func (c *Client) dial() {
 		)
 		defer func() {
 			<-handlerManager.Stop()
+			c.dialContext = c.connErr(c.ctx, handlerManager.GetConnection(), handlerManager.Err())
 		}()
 
 		select {
 		case <-c.ctx.Done():
 			return
 		case <-handlerManager.Ctx().Done():
-			c.address = c.connErr(handlerManager.GetConnection(), handlerManager.Err())
 			return
 		}
 	}
