@@ -57,6 +57,7 @@ func (m *Server) Start(acceptAmount int) <-chan struct{} {
 				go func() {
 					defer wg.Done()
 					m.accept(m.ctx)
+					m.cancel()
 				}()
 			}
 		}()
