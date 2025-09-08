@@ -524,7 +524,33 @@ func main() {
                                     <code class="bg-gray-100 px-1 py-0.5 rounded font-mono transition-colors duration-300" id="connectionStruct1">Connection</code>：连接实例
                                     <ul class="list-circle list-inside mt-1 ml-4 text-gray-700 transition-colors duration-300" id="connectionStruct1List">
                                         <li>支持消息发送（<code class="bg-gray-100 px-1 py-0.5 rounded font-mono transition-colors duration-300" id="connectionMethod1">SendMsg</code>/<code class="bg-gray-100 px-1 py-0.5 rounded font-mono transition-colors duration-300" id="connectionMethod2">SendMsgContext</code>）</li>
-                                        <li>连接属性存储（<code class="bg-gray-100 px-1 py-0.5 rounded font-mono transition-colors duration-300" id="connectionMethod3">SetProperty</code>/<code class="bg-gray-100 px-1 py-0.5 rounded font-mono transition-colors duration-300" id="connectionMethod4">GetProperty</code>）</li>
+
+                                        <li>连接属性存储（
+                                            <code class="bg-gray-100 px-1 py-0.5 rounded font-mono transition-colors duration-300" id="connectionMethod3">StoreProperty</code>
+                                            /
+                                            <code class="bg-gray-100 px-1 py-0.5 rounded font-mono transition-colors duration-300" id="connectionMethod4">LoadProperty</code>
+                                            /
+
+                                            <code class="bg-gray-100 px-1 py-0.5 rounded font-mono transition-colors duration-300" id="connectionMethod3">DeleteProperty</code>
+                                            /
+                                            <code class="bg-gray-100 px-1 py-0.5 rounded font-mono transition-colors duration-300" id="connectionMethod3">ClearProperty</code>
+                                            /
+                                            <code class="bg-gray-100 px-1 py-0.5 rounded font-mono transition-colors duration-300" id="connectionMethod3">CompareAndDeleteProperty</code>
+                                            /
+                                            <code class="bg-gray-100 px-1 py-0.5 rounded font-mono transition-colors duration-300" id="connectionMethod3">CompareAndSwapProperty</code>
+                                            /
+                                            <code class="bg-gray-100 px-1 py-0.5 rounded font-mono transition-colors duration-300" id="connectionMethod3">LoadAndDeleteProperty</code>
+                                            /
+                                            <code class="bg-gray-100 px-1 py-0.5 rounded font-mono transition-colors duration-300" id="connectionMethod3">LoadOrStoreProperty</code>
+                                            /
+                                            <code class="bg-gray-100 px-1 py-0.5 rounded font-mono transition-colors duration-300" id="connectionMethod3">RangeProperty</code>
+                                            /
+                                            <code class="bg-gray-100 px-1 py-0.5 rounded font-mono transition-colors duration-300" id="connectionMethod3">SwapProperty</code>
+ 
+                                            ）
+                                        </li>
+
+
                                         <li>连接关闭（<code class="bg-gray-100 px-1 py-0.5 rounded font-mono transition-colors duration-300" id="connectionMethod5">Close</code>）</li>
                                     </ul>
                                 </li>
@@ -704,18 +730,124 @@ func main() {
                                         <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd2-3">ctx context.Context, msgID uint32, data []byte</td>
                                         <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd2-4">error</td>
                                     </tr>
+
                                     <tr class="transition-colors duration-300" id="connectionApiTr3">
-                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd3-1">SetProperty</td>
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd3-1">StoreProperty</td>
                                         <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd3-2">设置连接属性</td>
                                         <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd3-3">key string, value interface{}</td>
                                         <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd3-4">-</td>
                                     </tr>
+
                                     <tr class="bg-gray-50 transition-colors duration-300" id="connectionApiTr4">
-                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-1">GetProperty</td>
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-1">LoadProperty</td>
                                         <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-2">获取连接属性</td>
                                         <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-3">key string</td>
                                         <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-4">interface{}, bool</td>
                                     </tr>
+
+
+                                    <tr class="bg-gray-50 transition-colors duration-300" id="connectionApiTr4">
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-1">DeleteProperty</td>
+                                        <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-2">删除连接属性</td>
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-3">key string</td>
+                                        <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-4">-</td>
+                                    </tr>
+
+
+                                    <tr class="bg-gray-50 transition-colors duration-300" id="connectionApiTr4">
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-1">ClearProperty</td>
+                                        <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-2">清空连接属性</td>
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-3">-</td>
+                                        <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-4">-</td>
+                                    </tr>
+
+
+                                    <tr class="bg-gray-50 transition-colors duration-300" id="connectionApiTr4">
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-1">CompareAndDeleteProperty</td>
+                                        <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-2">该函数仅在当前值与指定的旧值匹配时才删除条目，你需要确保线程安全（如果存在并发访问）并正确处理值的比较。</td>
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-3">key, old any</td>
+                                        <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-4">deleted bool</td>
+                                    </tr>
+
+
+                                    <tr class="bg-gray-50 transition-colors duration-300" id="connectionApiTr4">
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-1">CompareAndSwapProperty</td>
+                                        <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-2">接收三个参数：键 (key)、旧值 (old) 和新值 (new)
+                                            先获取写锁确保线程安全
+                                            检查键是否存在以及当前值是否与旧值相等
+                                            只有当条件满足时，才会将值更新为新值并返回 true
+                                            不满足条件时返回 false
+                                        </td>
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-3">key, old, new any</td>
+                                        <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-4">swapped bool</td>
+                                    </tr>
+
+
+                                    <tr class="bg-gray-50 transition-colors duration-300" id="connectionApiTr4">
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-1">LoadAndDeleteProperty</td>
+                                        <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-2">接收一个键作为参数
+                                        获取写锁以确保线程安全和操作的原子性
+                                        先读取键对应的当前值并记录键是否存在
+                                        如果键存在，则删除该键值对
+                                        返回读取到的值和一个布尔值（表示键是否存在）
+                                        </td>
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-3">key any</td>
+                                        <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-4">value any, loaded bool</td>
+                                    </tr>
+
+
+                                    <tr class="bg-gray-50 transition-colors duration-300" id="connectionApiTr4">
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-1">LoadOrStoreProperty</td>
+                                        <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-2"> 
+                                                            接收键和值两个参数
+                                            首先使用读锁检查键是否存在，这样可以在大多数已存在的情况下避免使用写锁，提高性能
+                                            如果键存在，直接返回已有的值和true（表示值已存在）
+                                            如果键不存在，获取写锁并进行双重检查（防止在获取写锁期间其他 goroutine 已设置该键）
+                                            最终存储新值并返回新值和false（表示是新存储的值）
+                                            性能优化：
+                                            采用 "先读锁检查，必要时再写锁存储" 的模式，减少写锁竞争
+                                            双重检查确保了并发环境下的数据一致性 
+                                        </td>
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-3">key, value any</td>
+                                        <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-4">actual any, loaded bool</td>
+                                    </tr>
+
+
+                                    <tr class="bg-gray-50 transition-colors duration-300" id="connectionApiTr4">
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-1">RangeProperty</td>
+                                        <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-2"> 
+
+                                            接收一个函数参数 f，该函数接收键和值作为参数，并返回一个布尔值
+                                            获取读锁以确保遍历过程中的线程安全，同时允许其他读操作
+                                            遍历存储中的所有键值对，并对每个键值对调用函数 f
+                                            如果函数 f 返回 false，则立即停止遍历 
+
+                                        </td>
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-3">f func(key, value any) bool</td>
+                                        <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-4">-</td>
+                                    </tr>
+
+
+
+
+                                    <tr class="bg-gray-50 transition-colors duration-300" id="connectionApiTr4">
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-1">SwapProperty</td>
+                                        <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-2"> 
+
+                                            接收两个参数：键（key）和新值（newValue）
+                                            获取写锁以确保线程安全和操作的原子性
+                                            先获取该键当前的旧值（如果存在）
+                                            无论键是否已存在，都将新值存储到该键中
+                                            返回旧值和一个布尔值（表示键是否原本存在）
+
+                                        </td>
+                                        <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd4-3">key, value any</td>
+                                        <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd4-4">previous any, loaded bool</td>
+                                    </tr>
+
+
+
+
                                     <tr class="transition-colors duration-300" id="connectionApiTr5">
                                         <td class="py-3 px-4 border-b text-sm font-mono transition-colors duration-300" id="connectionApiTd5-1">Close</td>
                                         <td class="py-3 px-4 border-b text-sm transition-colors duration-300" id="connectionApiTd5-2">关闭连接</td>
@@ -1082,7 +1214,7 @@ func main() {
 #### 核心结构
 - `Connection`：连接实例
   - 支持消息发送（`SendMsg`/`SendMsgContext`）
-  - 连接属性存储（`SetProperty`/`GetProperty`）
+  - 连接属性存储（`StoreProperty` / `LoadProperty`/ `DeleteProperty` / `ClearProperty` / `CompareAndDeleteProperty` / `CompareAndSwapProperty` / `LoadAndDeleteProperty` / `LoadOrStoreProperty` / `RangeProperty` / `SwapProperty` ）
   - 连接关闭（`Close`）
 
 - `Handler`：消息处理接口type Handler interface {
@@ -1156,8 +1288,15 @@ func main() {
 |------|------|------|--------|
 | SendMsg | 发送消息到对端 | msgID uint32, data []byte | error |
 | SendMsgContext | 带上下文的消息发送 | ctx context.Context, msgID uint32, data []byte | error |
-| SetProperty | 设置连接属性 | key string, value interface{} | - |
-| GetProperty | 获取连接属性 | key string | interface{}, bool |
+| StoreProperty | 设置连接属性 | key string, value interface{} | - |
+| LoadProperty | 获取连接属性 | key string | interface{}, bool |
+| DeleteProperty | 删除连接属性 | key string | - |
+| ClearProperty | 清空连接属性 | - | - |
+| CompareAndDeleteProperty | 在当前值与指定的旧值匹配时才删除条目 | key, old any | deleted bool |
+| CompareAndSwapProperty | 检查键是否存在以及当前值是否与旧值相等 只有当条件满足时，才会将值更新为新值并返回 true | key, old, new any | swapped bool |
+| LoadOrStoreProperty | 如果键存在，直接返回已有的值和true（表示值已存在） 如果键不存在，获取写锁并进行双重检查 | key, value any | actual any, loaded bool|
+| RangeProperty | 接收一个函数参数 f，该函数接收键和值作为参数，并返回一个布尔值  | f func(key, value any) bool | - |
+| SwapProperty | 先获取该键当前的旧值（如果存在） 无论键是否已存在，都将新值存储到该键中 返回旧值和一个布尔值  | key, value any | previous any, loaded bool |
 | Close | 关闭连接 | - | - |
 
 ### Server 接口

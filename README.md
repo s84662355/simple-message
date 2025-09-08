@@ -250,7 +250,7 @@ func main() {
 #### 核心结构
 - `Connection`：连接实例
   - 支持消息发送（`SendMsg`/`SendMsgContext`）
-  - 连接属性存储（`SetProperty`/`GetProperty`）
+  - 连接属性存储（`StoreProperty` / `LoadProperty`/ `DeleteProperty` / `ClearProperty` / `CompareAndDeleteProperty` / `CompareAndSwapProperty` / `LoadAndDeleteProperty` / `LoadOrStoreProperty` / `RangeProperty` / `SwapProperty` ）
   - 连接关闭（`Close`）
 
 - `Handler`：消息处理接口type Handler interface {
@@ -324,8 +324,15 @@ func main() {
 |------|------|------|--------|
 | SendMsg | 发送消息到对端 | msgID uint32, data []byte | error |
 | SendMsgContext | 带上下文的消息发送 | ctx context.Context, msgID uint32, data []byte | error |
-| SetProperty | 设置连接属性 | key string, value interface{} | - |
-| GetProperty | 获取连接属性 | key string | interface{}, bool |
+| StoreProperty | 设置连接属性 | key string, value interface{} | - |
+| LoadProperty | 获取连接属性 | key string | interface{}, bool |
+| DeleteProperty | 删除连接属性 | key string | - |
+| ClearProperty | 清空连接属性 | - | - |
+| CompareAndDeleteProperty | 在当前值与指定的旧值匹配时才删除条目 | key, old any | deleted bool |
+| CompareAndSwapProperty | 检查键是否存在以及当前值是否与旧值相等 只有当条件满足时，才会将值更新为新值并返回 true | key, old, new any | swapped bool |
+| LoadOrStoreProperty | 如果键存在，直接返回已有的值和true（表示值已存在） 如果键不存在，获取写锁并进行双重检查 | key, value any | actual any, loaded bool|
+| RangeProperty | 接收一个函数参数 f，该函数接收键和值作为参数，并返回一个布尔值  | f func(key, value any) bool | - |
+| SwapProperty | 先获取该键当前的旧值（如果存在） 无论键是否已存在，都将新值存储到该键中 返回旧值和一个布尔值  | key, value any | previous any, loaded bool |
 | Close | 关闭连接 | - | - |
 
 ### Server 接口

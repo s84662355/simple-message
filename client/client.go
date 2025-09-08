@@ -29,7 +29,6 @@ func NewClient(
 	c.ctx, c.cancel = context.WithCancel(context.Background())
 
 	c.done = make(chan struct{})
-	// c.dialContext = dialContext
 	go func() {
 		defer close(c.done)
 		c.start()
@@ -58,7 +57,6 @@ func (c *Client) start() {
 
 func (c *Client) dial() {
 	if conn, err := c.action.DialContext(c.ctx); err != nil {
-		//	c.dialContext = c.dialErr(c.ctx, err)
 		c.action.DialErr(c.ctx, err)
 		return
 	} else {
@@ -71,7 +69,6 @@ func (c *Client) dial() {
 		)
 		defer func() {
 			<-handlerManager.Stop()
-			// c.dialContext = c.connErr(c.ctx, handlerManager.GetConnection(), handlerManager.Err())
 			c.action.ConnErr(c.ctx, handlerManager.GetConnection(), handlerManager.Err())
 		}()
 
