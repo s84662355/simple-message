@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/s84662355/nqueue"
-	"github.com/s84662355/simple-tcp-message/protocol"
+	"github.com/s84662355/simple-message/protocol"
 )
 
 type Handler interface {
@@ -32,7 +32,7 @@ func NewHandlerManager(
 	readWriteCloser Conn,
 	handler map[uint32]Handler,
 	maxDataLen uint32,
-	connectedBegin func(ctx context.Context, conn *Connection),
+	connectedBegin ConnectedBegin,
 ) *HandlerManager {
 	h := &HandlerManager{
 		readWriteCloser: readWriteCloser,

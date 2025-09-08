@@ -8,8 +8,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/s84662355/simple-tcp-message/connection"
-	"github.com/s84662355/simple-tcp-message/server"
+	"github.com/s84662355/simple-message/connection"
+	"github.com/s84662355/simple-message/server"
 )
 
 // Handler1 消息处理器，用于处理MsgID=1的消息
@@ -39,6 +39,22 @@ func (l *Listener) Close() error {
 	return l.listener.Close()
 }
 
+type Action struct{}
+
+// 连接错误回调
+func (l *Action) ConnErr(ctx context.Context, conn *connection.Connection, err error) {
+	fmt.Printf("连接错误: %v, 连接信息: %v\n", err, conn)
+}
+
+// 连接建立回调
+func (l *Action) ConnectedBegin(ctx context.Context, conn *connection.Connection) {
+	// 向新连接发送欢迎消息
+	if err := conn.SendMsg(1, []byte("欢迎连接到服务器")); err != nil {
+		fmt.Printf("发送消息失败: %v\n", err)
+	}
+	fmt.Printf("新连接建立: %v\n", conn)
+}
+
 func main() {
 	// 创建TCP监听器，监听2000端口
 	listener, err := net.Listen("tcp", ":2000")
@@ -64,18 +80,7 @@ func main() {
 		handlers,
 		1024*1024, // 最大数据长度 (1MB)
 		1024,      // 最大连接数
-		// 连接错误回调
-		func(ctx context.Context, conn *connection.Connection, err error) {
-			fmt.Printf("连接错误: %v, 连接信息: %v\n", err, conn)
-		},
-		// 连接建立回调
-		func(ctx context.Context, conn *connection.Connection) {
-			// 向新连接发送欢迎消息
-			if err := conn.SendMsg(1, []byte("欢迎连接到服务器")); err != nil {
-				fmt.Printf("发送消息失败: %v\n", err)
-			}
-			fmt.Printf("新连接建立: %v\n", conn)
-		},
+		new(Action),
 	)
 
 	// 启动服务器，使用16个accept协程

@@ -1,4 +1,4 @@
-module github.com/s84662355/simple-tcp-message
+module github.com/s84662355/simple-message
 
 go 1.23.4
 

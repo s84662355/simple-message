@@ -5,7 +5,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/s84662355/simple-tcp-message/connection"
+	"github.com/s84662355/simple-message/connection"
 )
 
 func (m *Server) accept(ctx context.Context) {
@@ -41,11 +41,11 @@ func (m *Server) handlerTcpConn(ctx context.Context, conn io.ReadWriteCloser) {
 		conn,
 		m.handler,
 		m.maxDataLen,
-		m.connectedBegin,
+		m.action.ConnectedBegin,
 	)
 	defer func() {
 		<-handlerManager.Stop()
-		m.connErr(ctx, handlerManager.GetConnection(), handlerManager.Err())
+		m.action.ConnErr(ctx, handlerManager.GetConnection(), handlerManager.Err())
 	}()
 
 	select {

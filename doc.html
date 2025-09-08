@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>simple-tcp-message 使用文档</title>
+    <title>simple-message 使用文档</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script>
@@ -44,7 +44,7 @@
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-2">
                 <i class="fa fa-exchange text-primary text-2xl"></i>
-                <h1 class="text-xl font-bold text-dark">simple-tcp-message</h1>
+                <h1 class="text-xl font-bold text-dark">simple-message</h1>
             </div>
             <nav class="hidden md:flex space-x-6">
                 <a href="#overview" class="hover:text-primary transition-colors">概述</a>
@@ -81,7 +81,7 @@
                     <h2 class="text-2xl md:text-3xl font-bold text-dark">项目概述</h2>
                 </div>
                 <p class="text-gray-700 mb-4 leading-relaxed">
-                    <code class="bg-gray-100 px-1 py-0.5 rounded font-mono">simple-tcp-message</code> 是一个基于 Go 语言的轻量级 TCP 消息通信库，提供了客户端与服务器端的完整实现，
+                    <code class="bg-gray-100 px-1 py-0.5 rounded font-mono">simple-message</code> 是一个基于 Go 语言的轻量级 TCP 消息通信库，提供了客户端与服务器端的完整实现，
                     支持消息编解码、连接管理、并发消息处理等核心功能。通过模块化设计，简化了 TCP 通信中的底层细节，让开发者可以专注于业务逻辑的实现。
                 </p>
                 
@@ -122,7 +122,7 @@
                 </div>
                 <p class="text-gray-700 mb-4">使用 <code class="bg-gray-100 px-1 py-0.5 rounded font-mono">go get</code> 命令安装：</p>
                 <div class="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto font-mono text-sm">
-                    <pre>go get github.com/s84662355/simple-tcp-message</pre>
+                    <pre>go get github.com/s84662355/simple-message</pre>
                 </div>
             </div>
         </section>
@@ -150,8 +150,8 @@ import (
     "os/signal"
     "syscall"
 
-    "github.com/s84662355/simple-tcp-message/connection"
-    "github.com/s84662355/simple-tcp-message/server"
+    "github.com/s84662355/simple-message/connection"
+    "github.com/s84662355/simple-message/server"
 )
 
 // 定义消息处理器（处理 MsgID=1 的消息）
@@ -218,8 +218,8 @@ import (
     "os/signal"
     "syscall"
 
-    "github.com/s84662355/simple-tcp-message/client"
-    "github.com/s84662355/simple-tcp-message/connection"
+    "github.com/s84662355/simple-message/client"
+    "github.com/s84662355/simple-message/connection"
 )
 
 // 定义消息处理器（处理服务器发送的 MsgID=1 的消息）
@@ -564,12 +564,12 @@ func main() {
                 <div class="mb-4 md:mb-0">
                     <div class="flex items-center">
                         <i class="fa fa-exchange text-primary text-xl mr-2"></i>
-                        <span class="font-bold text-lg">simple-tcp-message</span>
+                        <span class="font-bold text-lg">simple-message</span>
                     </div>
                     <p class="text-gray-400 text-sm mt-1">轻量级 TCP 消息通信库</p>
                 </div>
                 <div class="text-gray-400 text-sm">
-                    &copy; 2023 simple-tcp-message. 基于 Go 语言开发。
+                    &copy; 2023 simple-message. 基于 Go 语言开发。
                 </div>
             </div>
         </div>

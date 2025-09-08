@@ -1,8 +1,8 @@
-# simple-tcp-message 文档
+# simple-message 文档
 
 ## 项目概述
 
-`simple-tcp-message` 是一个基于 Go 语言实现的轻量级 TCP 消息通信库，提供了客户端和服务器端的基础框架，支持自定义消息处理、连接管理、消息编解码等功能。该库通过模块化设计，简化了 TCP 通信中的消息处理流程，适用于构建简单的基于 TCP 的通信应用。
+`simple-message` 是一个基于 Go 语言实现的轻量级 TCP 消息通信库，提供了客户端和服务器端的基础框架，支持自定义消息处理、连接管理、消息编解码等功能。该库通过模块化设计，简化了 TCP 通信中的消息处理流程，适用于构建简单的基于 TCP 的通信应用。
 
 ### 核心功能特点
 
@@ -18,7 +18,7 @@
 使用 `go get` 命令安装：
 
 ```bash
-go get github.com/s84662355/simple-tcp-message
+go get github.com/s84662355/simple-message
 ```
 
 ## 快速开始
@@ -35,8 +35,8 @@ import (
     "os/signal"
     "syscall"
 
-    "github.com/s84662355/simple-tcp-message/connection"
-    "github.com/s84662355/simple-tcp-message/server"
+    "github.com/s84662355/simple-message/connection"
+    "github.com/s84662355/simple-message/server"
 )
 
 // 定义消息处理器（处理 MsgID=1 的消息）
@@ -104,8 +104,8 @@ import (
     "os/signal"
     "syscall"
 
-    "github.com/s84662355/simple-tcp-message/client"
-    "github.com/s84662355/simple-tcp-message/connection"
+    "github.com/s84662355/simple-message/client"
+    "github.com/s84662355/simple-message/connection"
 )
 
 // 定义消息处理器（处理服务器发送的 MsgID=1 的消息）
@@ -221,4 +221,4 @@ func main() {
 
 ## 总结
 
-`simple-tcp-message` 适合用于构建简单的 TCP 通信应用，通过模块化设计降低了 TCP 消息处理的复杂度。该库提供了消息编解码、连接管理、并发处理等基础功能，可根据实际需求扩展消息处理器和业务逻辑。
+`simple-message` 适合用于构建简单的 TCP 通信应用，通过模块化设计降低了 TCP 消息处理的复杂度。该库提供了消息编解码、连接管理、并发处理等基础功能，可根据实际需求扩展消息处理器和业务逻辑。

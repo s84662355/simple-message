@@ -1,7 +1,7 @@
 package server
 
 import (
-	"github.com/s84662355/simple-tcp-message/connection"
+	"github.com/s84662355/simple-message/connection"
 )
 
 type Listener interface {

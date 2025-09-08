@@ -5,23 +5,22 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/s84662355/simple-tcp-message/connection"
+	"github.com/s84662355/simple-message/connection"
 )
 
 type Server struct {
-	listener       Listener
-	isRun          atomic.Bool
-	ctx            context.Context
-	cancel         context.CancelFunc
-	startOnce      sync.Once
-	statusMu       sync.Mutex
-	connErr        func(ctx context.Context, conn *connection.Connection, err error)
-	connectedBegin func(ctx context.Context, conn *connection.Connection)
-	handler        map[uint32]connection.Handler
-	maxDataLen     uint32
-	maxConnCount   int32
-	connCount      atomic.Int32
-	done           chan struct{}
+	listener     Listener
+	isRun        atomic.Bool
+	ctx          context.Context
+	cancel       context.CancelFunc
+	startOnce    sync.Once
+	statusMu     sync.Mutex
+	action       Action
+	handler      map[uint32]connection.Handler
+	maxDataLen   uint32
+	maxConnCount int32
+	connCount    atomic.Int32
+	done         chan struct{}
 }
 
 func NewServer(
@@ -29,16 +28,14 @@ func NewServer(
 	handler map[uint32]connection.Handler,
 	maxDataLen uint32,
 	maxConnCount int32,
-	connErr func(ctx context.Context, conn *connection.Connection, err error),
-	connectedBegin func(ctx context.Context, conn *connection.Connection),
+	action Action,
 ) *Server {
 	m := &Server{
-		listener:       listener,
-		connErr:        connErr,
-		connectedBegin: connectedBegin,
-		handler:        handler,
-		maxDataLen:     maxDataLen,
-		maxConnCount:   maxConnCount,
+		listener:     listener,
+		action:       action,
+		handler:      handler,
+		maxDataLen:   maxDataLen,
+		maxConnCount: maxConnCount,
 	}
 	m.ctx, m.cancel = context.WithCancel(context.Background())
 	m.done = make(chan struct{})
