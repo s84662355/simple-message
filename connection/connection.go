@@ -22,19 +22,44 @@ func NewConnection() (*Connection, <-chan *MessageBody) {
 	return C, C.msgChan
 }
 
-func (C *Connection) SetProperty(k string, v interface{}) {
+func (C *Connection) StoreProperty(k string, v interface{}) {
 	C.property.Store(k, v)
 }
 
-func (C *Connection) GetProperty(k string) (interface{}, error) {
-	if v, ok := C.property.Load(k); ok {
-		return v, nil
-	}
-	return nil, ErrKeyNotFound
+func (C *Connection) LoadProperty(k string) (interface{}, bool) {
+	return C.property.Load(k)
 }
 
-func (C *Connection) RemoveProperty(key string) {
+func (C *Connection) DeleteProperty(key string) {
 	C.property.Delete(key)
+}
+
+func (C *Connection) ClearProperty() {
+	C.property.Clear()
+}
+
+func (C *Connection) CompareAndDeleteProperty(key, old any) (deleted bool) {
+	return C.property.CompareAndDelete(key, old)
+}
+
+func (C *Connection) CompareAndSwapProperty(key, old, new any) (swapped bool) {
+	return C.property.CompareAndSwap(key, old, new)
+}
+
+func (C *Connection) LoadAndDeleteProperty(key any) (value any, loaded bool) {
+	return C.property.LoadAndDelete(key)
+}
+
+func (C *Connection) LoadOrStoreProperty(key, value any) (actual any, loaded bool) {
+	return C.property.LoadOrStore(key, value)
+}
+
+func (C *Connection) RangeProperty(f func(key, value any) bool) {
+	C.property.Range(f)
+}
+
+func (C *Connection) SwapProperty(key, value any) (previous any, loaded bool) {
+	return C.property.Swap(key, value)
 }
 
 func (C *Connection) SendMsgContext(ctx context.Context, MsgID uint32, Data []byte) error {

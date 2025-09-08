@@ -47,13 +47,11 @@ func NewHandlerManager(
 	go func() {
 		defer close(h.done)
 		defer h.merr(ErrIsClose)
+		connectedBegin(h.ctx, h.conn)
+
 		wg := &sync.WaitGroup{}
 		defer wg.Wait()
-		wg.Add(4)
-		go func() {
-			defer wg.Done()
-			connectedBegin(h.ctx, h.conn)
-		}()
+		wg.Add(3)
 
 		go func() {
 			defer wg.Done()
