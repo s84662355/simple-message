@@ -14,8 +14,9 @@
 go get github.com/s84662355/simple-message
 ## 快速开始
 
-### 服务器端示例package main
+### 服务器端示例 
 ```go
+package main
 import (
     "context"
     "fmt"
@@ -130,8 +131,11 @@ func main() {
 ```
 
  
-### 客户端示例package main
+### 客户端示例 
+
 ```go
+package main
+
 import (
     "context"
     "fmt"
