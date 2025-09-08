@@ -48,11 +48,11 @@ func (l *Action) ConnErr(ctx context.Context, conn *connection.Connection, err e
 
 // 连接建立回调
 func (l *Action) ConnectedBegin(ctx context.Context, conn *connection.Connection) {
+	fmt.Printf("新连接建立: %v\n", conn)
 	// 向新连接发送欢迎消息
 	if err := conn.SendMsg(1, []byte("欢迎连接到服务器")); err != nil {
 		fmt.Printf("发送消息失败: %v\n", err)
 	}
-	fmt.Printf("新连接建立: %v\n", conn)
 }
 
 func main() {

@@ -47,11 +47,15 @@ func NewHandlerManager(
 	go func() {
 		defer close(h.done)
 		defer h.merr(ErrIsClose)
-		connectedBegin(h.ctx, h.conn)
 
 		wg := &sync.WaitGroup{}
 		defer wg.Wait()
-		wg.Add(3)
+		wg.Add(4)
+
+		go func() {
+			defer wg.Done()
+			connectedBegin(h.ctx, h.conn)
+		}()
 
 		go func() {
 			defer wg.Done()
@@ -123,7 +127,6 @@ func (h *HandlerManager) send() {
 		case <-h.conn.Ctx().Done():
 			return
 		case m := <-h.msgChan:
-
 			m.AckMessage(func() error {
 				message := m.GetMessage()
 				err = h.decoder.Marshal(h.readWriteCloser, message.MsgID, message.Data)
