@@ -11,6 +11,7 @@ import (
 func (m *Server) accept(ctx context.Context) {
 	wg := &sync.WaitGroup{}
 	defer wg.Wait()
+	defer m.cancel()
 	for m.isRun.Load() {
 		// 接受客户端的连接
 		conn, err := m.listener.Accept()
