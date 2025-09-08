@@ -15,7 +15,7 @@ go get github.com/s84662355/simple-message
 ## 快速开始
 
 ### 服务器端示例package main
-
+```go
 import (
     "context"
     "fmt"
@@ -127,6 +127,9 @@ func main() {
         fmt.Printf("收到退出信号: %v，正在停止服务器...\n", sig)
     }
 }
+```
+
+```go
 ### 客户端示例package main
 
 import (
@@ -226,6 +229,7 @@ func main() {
     <-signalChan
     fmt.Println("收到退出信号，正在停止客户端...")
 }
+```
 ## 核心模块说明
 
 ### 1. protocol 包（消息协议）
