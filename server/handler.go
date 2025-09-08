@@ -15,7 +15,7 @@ func (m *Server) accept(ctx context.Context) {
 		// 接受客户端的连接
 		conn, err := m.listener.Accept()
 		if err != nil {
-			continue
+			return
 		}
 
 		if m.connCount.Add(1) > m.maxConnCount {
