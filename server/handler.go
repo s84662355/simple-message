@@ -30,7 +30,6 @@ func (m *Server) accept(ctx context.Context) {
 			defer wg.Done()
 			defer conn.Close()
 			defer m.connCount.Add(-1)
-
 			m.handlerTcpConn(ctx, conn)
 		}()
 

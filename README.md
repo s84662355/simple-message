@@ -304,20 +304,15 @@ func main() {
 - `NewClient(handlers map[uint32]connection.Handler, maxDataLen uint32, action Action) *Client`：创建客户端实例
 - `Start()`：启动客户端
 - `Stop() <-chan struct{}`：停止客户端并释放资源
-- `GetConnection() *connection.Connection`：获取当前连接
+- `SendMsg(MsgID uint32, Data []byte) error`：发送消息数据
+- `SendMsgContext(ctx context.Context, MsgID uint32, Data []byte) error`：带上下文发送消息数据
 
 #### 关键特性
 - 自动重连机制（通过`Action`接口实现）
 - 连接状态监听
 - 与服务器端统一的消息处理接口
 - 上下文感知的连接管理
-
-### 5. nqueue 包（消息队列）
-提供并发安全的消息队列，用于缓冲消息，避免处理阻塞。
-
-#### 核心结构
-- `NQueue[T]`：泛型队列实现，支持任意类型的消息存储
-
+ 
 #### 主要作用
 - 平衡消息生产与消费速度差异
 - 提供异步消息处理能力
@@ -358,4 +353,5 @@ func main() {
 | client.NewClient | 创建客户端实例 | 处理器、最大数据长度、Action接口 | *Client |
 | Client.Start | 启动客户端 | - | - |
 | Client.Stop | 停止客户端 | - | <-chan struct{} |
-| Client.GetConnection | 获取当前连接 | - | *connection.Connection |
+| Client.SendMsg | ：发送消息数据 | 消息id, 二进制数据 | error |
+| Client.SendMsgContext | ：发送消息数据 | 上下文、消息id、二进制数据 | error |

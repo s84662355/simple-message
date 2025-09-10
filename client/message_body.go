@@ -1,29 +1,36 @@
-package connection
+package client
 
 import (
+	"context"
 	"sync/atomic"
-
-	"github.com/s84662355/simple-message/protocol"
 )
 
 type T func() error
 
 type MessageBody struct {
-	message *protocol.Message
+	ctx     context.Context
 	err     error
 	ackChan chan struct{}
 	status  atomic.Bool
+	data    []byte
+	id      uint32
 }
 
-func NewMessageBody(message *protocol.Message) *MessageBody {
+func NewMessageBody(
+	ctx context.Context,
+	id uint32,
+	data []byte,
+) *MessageBody {
 	return &MessageBody{
-		message: message,
+		ctx:     ctx,
+		data:    data,
+		id:      id,
 		ackChan: make(chan struct{}),
 	}
 }
 
-func (m *MessageBody) GetMessage() *protocol.Message {
-	return m.message
+func (m *MessageBody) GetMessage() (context.Context, uint32, []byte) {
+	return m.ctx, m.id, m.data
 }
 
 func (m *MessageBody) Done() <-chan struct{} {
