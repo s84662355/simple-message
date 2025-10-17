@@ -5,7 +5,7 @@ import (
 	"maps"
 	"sync"
 
-	"github.com/s84662355/nqueue"
+	//"github.com/s84662355/nqueue"
 	"github.com/s84662355/simple-message/protocol"
 )
 
@@ -15,17 +15,17 @@ type Handler interface {
 
 type HandlerManager struct {
 	readWriteCloser Conn
-	queue           nqueue.Queue[*protocol.Message]
-	conn            *Connection
-	msgChan         <-chan *MessageBody
-	handler         map[uint32]Handler
-	decoder         *protocol.Decoder
-	ctx             context.Context
-	cancel          context.CancelFunc
-	wg              sync.WaitGroup
-	err             error
-	errOnce         sync.Once
-	done            chan struct{}
+	// queue           nqueue.Queue[*protocol.Message]
+	conn    *Connection
+	msgChan <-chan *MessageBody
+	handler map[uint32]Handler
+	decoder *protocol.Decoder
+	ctx     context.Context
+	cancel  context.CancelFunc
+	wg      sync.WaitGroup
+	err     error
+	errOnce sync.Once
+	done    chan struct{}
 }
 
 func NewHandlerManager(
@@ -37,9 +37,9 @@ func NewHandlerManager(
 	h := &HandlerManager{
 		readWriteCloser: readWriteCloser,
 		handler:         maps.Clone(handler),
-		queue:           nqueue.NewNQueue[*protocol.Message](),
-		decoder:         protocol.NewDecoder(maxDataLen),
-		done:            make(chan struct{}),
+		// queue:           nqueue.NewNQueue[*protocol.Message](),
+		decoder: protocol.NewDecoder(maxDataLen),
+		done:    make(chan struct{}),
 	}
 	h.conn, h.msgChan = NewConnection()
 	h.ctx, h.cancel = context.WithCancel(context.Background())
@@ -50,7 +50,7 @@ func NewHandlerManager(
 
 		wg := &sync.WaitGroup{}
 		defer wg.Wait()
-		wg.Add(4)
+		wg.Add(3)
 
 		go func() {
 			defer wg.Done()
@@ -68,11 +68,11 @@ func NewHandlerManager(
 			defer h.stop()
 			h.send()
 		}()
-		go func() {
-			defer wg.Done()
-			defer h.stop()
-			h.queueConsumer()
-		}()
+		// go func() {
+		// 	defer wg.Done()
+		// 	defer h.stop()
+		// 	h.queueConsumer()
+		// }()
 	}()
 
 	return h
@@ -98,7 +98,7 @@ func (h *HandlerManager) Err() error {
 
 func (h *HandlerManager) stop() {
 	h.conn.Close()
-	h.queue.Close()
+	// h.queue.Close()
 	h.readWriteCloser.Close()
 	h.cancel()
 }
@@ -115,7 +115,16 @@ func (h *HandlerManager) read() {
 			h.merr(err)
 			return
 		} else {
-			h.queue.Enqueue(message)
+			///h.queue.Enqueue(message)
+
+			if handler, ok := h.handler[message.MsgID]; ok {
+				r := &Request{
+					conn:  h.conn,
+					data:  message.Data,
+					msgID: message.MsgID,
+				}
+				handler.Handle(r)
+			}
 		}
 	}
 }
@@ -144,19 +153,19 @@ func (h *HandlerManager) send() {
 	}
 }
 
-func (h *HandlerManager) queueConsumer() {
-	for {
-		if t, ok, isClose := h.queue.DequeueWait(); isClose {
-			return
-		} else if ok {
-			if handler, ok := h.handler[t.MsgID]; ok {
-				r := &Request{
-					conn:  h.conn,
-					data:  t.Data,
-					msgID: t.MsgID,
-				}
-				handler.Handle(r)
-			}
-		}
-	}
-}
+// func (h *HandlerManager) queueConsumer() {
+// 	for {
+// 		if t, ok, isClose := h.queue.DequeueWait(); isClose {
+// 			return
+// 		} else if ok {
+// 			if handler, ok := h.handler[t.MsgID]; ok {
+// 				r := &Request{
+// 					conn:  h.conn,
+// 					data:  t.Data,
+// 					msgID: t.MsgID,
+// 				}
+// 				handler.Handle(r)
+// 			}
+// 		}
+// 	}
+// }

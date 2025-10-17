@@ -4,20 +4,25 @@ import (
 	"context"
 	"errors"
 	"maps"
+	"sync/atomic"
 
 	"github.com/s84662355/simple-message/connection"
 )
 
-var ErrIsClose = errors.New("已关闭")
+var (
+	ErrIsClose = errors.New("已关闭")
+	ErrConn    = errors.New("连接失败")
+)
 
 type Client struct {
-	handler    map[uint32]connection.Handler
-	ctx        context.Context
-	cancel     context.CancelFunc
-	maxDataLen uint32
-	action     Action
-	done       chan struct{}
-	msgChan    chan *MessageBody
+	handler     map[uint32]connection.Handler
+	ctx         context.Context
+	cancel      context.CancelFunc
+	maxDataLen  uint32
+	action      Action
+	done        chan struct{}
+	msgChan     chan *MessageBody
+	connPointer atomic.Pointer[connection.Connection]
 }
 
 func NewClient(
@@ -69,16 +74,11 @@ func (c *Client) SendMsgContext(ctx context.Context, MsgID uint32, Data []byte) 
 }
 
 func (c *Client) sendMsgContext(ctx context.Context, MsgID uint32, Data []byte) error {
-	m := NewMessageBody(ctx, MsgID, Data)
-	select {
-	case <-c.ctx.Done():
-		return ErrIsClose
-	case <-ctx.Done():
-		return ctx.Err()
-	case c.msgChan <- m:
-		<-m.ackChan
-		return m.err
+	conn := c.connPointer.Load()
+	if conn == nil {
+		return ErrConn
 	}
+	return conn.SendMsgContext(ctx, MsgID, Data)
 }
 
 func (c *Client) dial() {
@@ -98,18 +98,12 @@ func (c *Client) dial() {
 			c.action.ConnErr(c.ctx, handlerManager.GetConnection(), handlerManager.Err())
 		}()
 
-		for {
-			select {
-			case msg := <-c.msgChan:
-				msg.AckMessage(func() error {
-					ctx, id, data := msg.GetMessage()
-					return handlerManager.GetConnection().SendMsgContext(ctx, id, data)
-				})
-			case <-c.ctx.Done():
-				return
-			case <-handlerManager.Ctx().Done():
-				return
-			}
+		c.connPointer.Store(handlerManager.GetConnection())
+		select {
+		case <-c.ctx.Done():
+			return
+		case <-handlerManager.Ctx().Done():
+			return
 		}
 
 	}
