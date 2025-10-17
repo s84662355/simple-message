@@ -26,6 +26,7 @@ type HandlerManager struct {
 	err     error
 	errOnce sync.Once
 	done    chan struct{}
+	r       *Request
 }
 
 func NewHandlerManager(
@@ -40,6 +41,7 @@ func NewHandlerManager(
 		// queue:           nqueue.NewNQueue[*protocol.Message](),
 		decoder: protocol.NewDecoder(maxDataLen),
 		done:    make(chan struct{}),
+		r:       &Request{},
 	}
 	h.conn, h.msgChan = NewConnection()
 	h.ctx, h.cancel = context.WithCancel(context.Background())
@@ -118,12 +120,12 @@ func (h *HandlerManager) read() {
 			///h.queue.Enqueue(message)
 
 			if handler, ok := h.handler[message.MsgID]; ok {
-				r := &Request{
-					conn:  h.conn,
-					data:  message.Data,
-					msgID: message.MsgID,
-				}
-				handler.Handle(r)
+
+				h.r.conn = h.conn
+				h.r.data = message.Data
+				h.r.msgID = message.MsgID
+
+				handler.Handle(h.r)
 			}
 		}
 	}
