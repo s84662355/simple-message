@@ -15,14 +15,14 @@ var (
 )
 
 type Client struct {
-	handler     map[uint32]connection.Handler
-	ctx         context.Context
-	cancel      context.CancelFunc
-	maxDataLen  uint32
-	action      Action
-	done        chan struct{}
-	msgChan     chan *MessageBody
-	connPointer atomic.Pointer[connection.Connection]
+	handler            map[uint32]connection.Handler
+	ctx                context.Context
+	cancel             context.CancelFunc
+	maxDataLen         uint32
+	action             Action
+	done               chan struct{}
+	connPointer        atomic.Pointer[connection.Connection]
+	connSendCanPointer atomic.Pointer[chan struct{}]
 }
 
 func NewClient(
@@ -35,8 +35,9 @@ func NewClient(
 		action:     action,
 		maxDataLen: maxDataLen,
 	}
+	sendCan := make(chan struct{})
+	c.connSendCanPointer.Store(&sendCan)
 	c.ctx, c.cancel = context.WithCancel(context.Background())
-	c.msgChan = make(chan *MessageBody)
 
 	c.done = make(chan struct{})
 	go func() {
@@ -74,11 +75,16 @@ func (c *Client) SendMsgContext(ctx context.Context, MsgID uint32, Data []byte) 
 }
 
 func (c *Client) sendMsgContext(ctx context.Context, MsgID uint32, Data []byte) error {
-	conn := c.connPointer.Load()
-	if conn == nil {
-		return ErrConn
+	sendCan := c.connSendCanPointer.Load()
+	select {
+	case <-(*sendCan):
+		conn := c.connPointer.Load()
+		return conn.SendMsgContext(ctx, MsgID, Data)
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-c.ctx.Done():
+		return ErrIsClose
 	}
-	return conn.SendMsgContext(ctx, MsgID, Data)
 }
 
 func (c *Client) dial() {
@@ -94,11 +100,16 @@ func (c *Client) dial() {
 			c.action.ConnectedBegin,
 		)
 		defer func() {
+			sendCan := make(chan struct{})
+			c.connSendCanPointer.Store(&sendCan)
 			<-handlerManager.Stop()
 			c.action.ConnErr(c.ctx, handlerManager.GetConnection(), handlerManager.Err())
 		}()
 
 		c.connPointer.Store(handlerManager.GetConnection())
+		sendCan := c.connSendCanPointer.Load()
+		close(*sendCan)
+
 		select {
 		case <-c.ctx.Done():
 			return
