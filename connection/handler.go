@@ -5,7 +5,6 @@ import (
 	"maps"
 	"sync"
 
-	//"github.com/s84662355/nqueue"
 	"github.com/s84662355/simple-message/protocol"
 )
 
@@ -15,18 +14,16 @@ type Handler interface {
 
 type HandlerManager struct {
 	readWriteCloser Conn
-	// queue           nqueue.Queue[*protocol.Message]
-	conn    *Connection
-	msgChan <-chan *MessageBody
-	handler map[uint32]Handler
-	decoder *protocol.Decoder
-	ctx     context.Context
-	cancel  context.CancelFunc
-	wg      sync.WaitGroup
-	err     error
-	errOnce sync.Once
-	done    chan struct{}
-	r       *Request
+	conn            *Connection
+	msgChan         <-chan *MessageBody
+	handler         map[uint32]Handler
+	decoder         *protocol.Decoder
+	ctx             context.Context
+	cancel          context.CancelFunc
+	wg              sync.WaitGroup
+	err             error
+	errOnce         sync.Once
+	done            chan struct{}
 }
 
 func NewHandlerManager(
@@ -38,10 +35,8 @@ func NewHandlerManager(
 	h := &HandlerManager{
 		readWriteCloser: readWriteCloser,
 		handler:         maps.Clone(handler),
-		// queue:           nqueue.NewNQueue[*protocol.Message](),
-		decoder: protocol.NewDecoder(maxDataLen),
-		done:    make(chan struct{}),
-		r:       &Request{},
+		decoder:         protocol.NewDecoder(maxDataLen),
+		done:            make(chan struct{}),
 	}
 	h.conn, h.msgChan = NewConnection()
 	h.ctx, h.cancel = context.WithCancel(context.Background())
@@ -120,12 +115,13 @@ func (h *HandlerManager) read() {
 			///h.queue.Enqueue(message)
 
 			if handler, ok := h.handler[message.MsgID]; ok {
+				r := &Request{
+					conn:  h.conn,
+					data:  message.Data,
+					msgID: message.MsgID,
+				}
 
-				h.r.conn = h.conn
-				h.r.data = message.Data
-				h.r.msgID = message.MsgID
-
-				handler.Handle(h.r)
+				handler.Handle(r)
 			}
 		}
 	}
