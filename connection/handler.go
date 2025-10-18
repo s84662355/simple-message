@@ -25,7 +25,6 @@ type HandlerManager struct {
 	err     error
 	errOnce sync.Once
 	done    chan struct{}
-	r       *Request
 }
 
 func NewHandlerManager(
@@ -40,7 +39,6 @@ func NewHandlerManager(
 
 		decoder: protocol.NewDecoder(maxDataLen),
 		done:    make(chan struct{}),
-		r:       &Request{},
 	}
 	h.conn, h.msgChan = NewConnection()
 	h.ctx, h.cancel = context.WithCancel(context.Background())
@@ -69,11 +67,6 @@ func NewHandlerManager(
 			defer h.stop()
 			h.send()
 		}()
-		// go func() {
-		// 	defer wg.Done()
-		// 	defer h.stop()
-		// 	h.queueConsumer()
-		// }()
 	}()
 
 	return h
@@ -99,7 +92,6 @@ func (h *HandlerManager) Err() error {
 
 func (h *HandlerManager) stop() {
 	h.conn.Close()
-	// h.queue.Close()
 	h.readWriteCloser.Close()
 	h.cancel()
 }
@@ -116,15 +108,15 @@ func (h *HandlerManager) read() {
 			h.merr(err)
 			return
 		} else {
-			///h.queue.Enqueue(message)
-
 			if handler, ok := h.handler[message.MsgID]; ok {
 
-				h.r.conn = h.conn
-				h.r.data = message.Data
-				h.r.msgID = message.MsgID
+				r := &Request{
+					conn:  h.conn,
+					data:  message.Data,
+					msgID: message.MsgID,
+				}
 
-				handler.Handle(h.r)
+				handler.Handle(r)
 			}
 		}
 	}
@@ -153,20 +145,3 @@ func (h *HandlerManager) send() {
 		}
 	}
 }
-
-// func (h *HandlerManager) queueConsumer() {
-// 	for {
-// 		if t, ok, isClose := h.queue.DequeueWait(); isClose {
-// 			return
-// 		} else if ok {
-// 			if handler, ok := h.handler[t.MsgID]; ok {
-// 				r := &Request{
-// 					conn:  h.conn,
-// 					data:  t.Data,
-// 					msgID: t.MsgID,
-// 				}
-// 				handler.Handle(r)
-// 			}
-// 		}
-// 	}
-// }
