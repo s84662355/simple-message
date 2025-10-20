@@ -81,8 +81,7 @@ func (c *Client) sendMsgContext(ctx context.Context, MsgID uint32, Data []byte) 
 }
 
 func (c *Client) dial() {
-	if conn, err := c.action.DialContext(c.ctx); err != nil {
-		c.action.DialErr(c.ctx, err)
+	if conn, err := c.action.DialContext(c.ctx); err != nil { 
 		return
 	} else {
 		defer conn.Close()
