@@ -13,8 +13,7 @@ type Handler interface {
 }
 
 type HandlerManager struct {
-	readWriteCloser Conn
-
+	readWriteCloser Conn 
 	conn    *Connection
 	msgChan <-chan *MessageBody
 	handler map[uint32]Handler
