@@ -12,14 +12,20 @@ type Connection struct {
 	ctx      context.Context
 	cancel   context.CancelFunc
 	property sync.Map
+	data     any
 }
 
-func NewConnection() (*Connection, <-chan *MessageBody) {
+func NewConnection(data any) (*Connection, <-chan *MessageBody) {
 	C := &Connection{
 		msgChan: make(chan *MessageBody),
+		data:    data,
 	}
 	C.ctx, C.cancel = context.WithCancel(context.Background())
 	return C, C.msgChan
+}
+
+func (C *Connection) GetData() any {
+	return C.data
 }
 
 func (C *Connection) StoreProperty(k string, v interface{}) {

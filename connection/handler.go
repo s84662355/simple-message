@@ -13,17 +13,17 @@ type Handler interface {
 }
 
 type HandlerManager struct {
-	readWriteCloser Conn 
-	conn    *Connection
-	msgChan <-chan *MessageBody
-	handler map[uint32]Handler
-	decoder *protocol.Decoder
-	ctx     context.Context
-	cancel  context.CancelFunc
-	wg      sync.WaitGroup
-	err     error
-	errOnce sync.Once
-	done    chan struct{}
+	readWriteCloser Conn
+	conn            *Connection
+	msgChan         <-chan *MessageBody
+	handler         map[uint32]Handler
+	decoder         *protocol.Decoder
+	ctx             context.Context
+	cancel          context.CancelFunc
+	wg              sync.WaitGroup
+	err             error
+	errOnce         sync.Once
+	done            chan struct{}
 }
 
 func NewHandlerManager(
@@ -31,6 +31,7 @@ func NewHandlerManager(
 	handler map[uint32]Handler,
 	maxDataLen uint32,
 	connectedBegin ConnectedBegin,
+	data any,
 ) *HandlerManager {
 	h := &HandlerManager{
 		readWriteCloser: readWriteCloser,
@@ -39,7 +40,7 @@ func NewHandlerManager(
 		decoder: protocol.NewDecoder(maxDataLen),
 		done:    make(chan struct{}),
 	}
-	h.conn, h.msgChan = NewConnection()
+	h.conn, h.msgChan = NewConnection(data)
 	h.ctx, h.cancel = context.WithCancel(context.Background())
 
 	go func() {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -30,8 +31,25 @@ type Listener struct {
 }
 
 // Accept 实现Accept接口，返回读写关闭器
-func (l *Listener) Accept() (connection.Conn, error) {
-	return l.listener.Accept()
+func (l *Listener) Accept() (connection.Conn, any, error) {
+	for {
+		if conn, err := l.listener.Accept(); err != nil {
+			if errors.Is(err, net.ErrClosed) {
+				fmt.Println("监听器已关闭，正常退出")
+				return nil, nil, err
+			}
+
+			// 2. 判断是否为临时错误（可重试）
+			if netErr, ok := err.(net.Error); ok && netErr.Temporary() {
+				fmt.Printf("临时错误: %v，将重试\n", err)
+				continue
+			}
+
+		} else {
+			///进行一些握手之类的操作
+			return conn, "token", nil
+		}
+	}
 }
 
 // Close 实现关闭接口

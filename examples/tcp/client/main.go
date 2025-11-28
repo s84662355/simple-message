@@ -24,12 +24,12 @@ func (h *Handler1) Handle(request connection.IRequest) {
 
 type Action struct{}
 
-func (a *Action) DialContext(ctx context.Context) (connection.Conn, error) {
+func (a *Action) DialContext(ctx context.Context) (connection.Conn, any, error) {
 	var d net.Dialer
 	// 连接到本地2000端口的TCP服务器
 	conn, err := d.DialContext(ctx, "tcp", "127.0.0.1:2000")
 	if err != nil {
-		return nil, fmt.Errorf("连接失败: %w", err)
+		return nil, nil, fmt.Errorf("连接失败: %w", err)
 	}
 
 	// 可选：配置TCP连接属性（如心跳机制）
@@ -39,8 +39,8 @@ func (a *Action) DialContext(ctx context.Context) (connection.Conn, error) {
 			fmt.Printf("设置TCP保活失败: %v\n", err)
 		}
 	}
-
-	return conn, nil
+	///进行一些握手之类的操作
+	return conn, "token", nil
 }
 
 // 拨号错误回调 - 返回新的拨号函数用于重连

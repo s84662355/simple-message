@@ -1,7 +1,7 @@
 package server
 
 import (
-	"context" 
+	"context"
 	"sync"
 
 	"github.com/s84662355/simple-message/connection"
@@ -13,7 +13,7 @@ func (m *Server) accept(ctx context.Context) {
 	defer m.cancel()
 	for m.isRun.Load() {
 		// 接受客户端的连接
-		conn, err := m.listener.Accept()
+		conn, data, err := m.listener.Accept()
 		if err != nil {
 			return
 		}
@@ -29,18 +29,19 @@ func (m *Server) accept(ctx context.Context) {
 			defer wg.Done()
 			defer conn.Close()
 			defer m.connCount.Add(-1)
-			m.handlerTcpConn(ctx, conn)
+			m.handlerTcpConn(ctx, conn, data)
 		}()
 
 	}
 }
 
-func (m *Server) handlerTcpConn(ctx context.Context, conn connection.Conn) {
+func (m *Server) handlerTcpConn(ctx context.Context, conn connection.Conn, data any) {
 	handlerManager := connection.NewHandlerManager(
 		conn,
 		m.handler,
 		m.maxDataLen,
 		m.action.ConnectedBegin,
+		data,
 	)
 	defer func() {
 		<-handlerManager.Stop()

@@ -5,6 +5,6 @@ import (
 )
 
 type Listener interface {
-	Accept() (connection.Conn, error)
+	Accept() (connection.Conn, any, error)
 	Close() error
 }

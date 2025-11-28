@@ -81,7 +81,7 @@ func (c *Client) sendMsgContext(ctx context.Context, MsgID uint32, Data []byte) 
 }
 
 func (c *Client) dial() {
-	if conn, err := c.action.DialContext(c.ctx); err != nil { 
+	if conn, data, err := c.action.DialContext(c.ctx); err != nil {
 		return
 	} else {
 		defer conn.Close()
@@ -90,6 +90,7 @@ func (c *Client) dial() {
 			c.handler,
 			c.maxDataLen,
 			c.action.ConnectedBegin,
+			data,
 		)
 		defer func() {
 			<-handlerManager.Stop()
