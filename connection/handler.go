@@ -44,9 +44,7 @@ func NewHandlerManager(
 	h.ctx, h.cancel = context.WithCancel(context.Background())
 
 	go func() {
-		defer close(h.done)
-		defer h.merr(ErrIsClose)
-
+		defer close(h.done) 
 		wg := &sync.WaitGroup{}
 		defer wg.Wait()
 		wg.Add(3)
@@ -91,6 +89,7 @@ func (h *HandlerManager) Err() error {
 }
 
 func (h *HandlerManager) stop() {
+    h.merr(ErrIsClose)
 	h.conn.Close()
 	h.readWriteCloser.Close()
 	h.cancel()
